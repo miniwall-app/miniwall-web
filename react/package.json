@@ -1,0 +1,68 @@
+{
+  "name": "@miniwall/react",
+  "version": "0.1.0",
+  "description": "React bindings for @miniwall/web: <Paywall> inline and usePaywall() to present.",
+  "license": "MIT",
+  "author": "Miniwall",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miniwall-app/miniwall-web.git",
+    "directory": "react"
+  },
+  "homepage": "https://github.com/miniwall-app/miniwall-web/tree/HEAD/react#readme",
+  "bugs": {
+    "url": "https://github.com/miniwall-app/miniwall-web/issues"
+  },
+  "keywords": [
+    "paywall",
+    "react",
+    "subscriptions",
+    "sdk"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.tsx --format esm --dts --clean --external react --external @miniwall/web",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "pnpm run build && pnpm run test"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "@miniwall/web": "workspace:^"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/dom": "^10.4.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.0.2",
+    "jsdom": "^30.1.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tsup": "^8.5.1",
+    "typescript": "^5",
+    "vitest": "^5.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
