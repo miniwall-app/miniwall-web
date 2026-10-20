@@ -58,6 +58,8 @@ jobs:
       - run: pnpm typecheck && pnpm test && pnpm test:e2e
       # The first publish of a package needs a token (npm cannot attach a trusted publisher to a package that does not exist yet):
       # add a granular, publish-only NPM_TOKEN as a repository secret, then remove it once trusted publishing is set up.
+      # No --provenance while this repository is private (npm issues provenance only for public repositories): add it back
+      # once the repository is public.
       # A prerelease tag (0.2.0-rc.1) goes out under the `next` dist-tag, never `latest`. A package whose version already exists
       # is skipped, so a rerun after a partial failure finishes the job instead of failing on the first package.
       - name: publish @miniwall/web, then @miniwall/react
@@ -69,7 +71,7 @@ jobs:
           dist=latest; case "$TAG" in *-*) dist=next;; esac
           for pkg in @miniwall/web @miniwall/react; do
             if npm view "$pkg@$TAG" version >/dev/null 2>&1; then echo "$pkg@$TAG is already on npm, skipping"; continue; fi
-            pnpm --filter "$pkg" publish --provenance --no-git-checks --tag "$dist"
+            pnpm --filter "$pkg" publish --no-git-checks --tag "$dist"
           done
 
   github-release:
