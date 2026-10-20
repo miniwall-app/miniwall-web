@@ -1,0 +1,81 @@
+name: Release
+
+# Publishes @miniwall/web and @miniwall/react to npm when a version tag (0.1.0, 0.2.0-rc.1) is pushed.
+# Nothing is published until the owner (1) creates the `publish` environment with required reviewers and
+# (2) sets the repository variable PUBLISH_ENABLED=true. Until then a tag only runs the checks in `guard`.
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: tag checks
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.g.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: g
+        env:
+          TAG: ${{ github.ref_name }}
+          ENABLED: ${{ vars.PUBLISH_ENABLED }}
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::tag $TAG is not on main"; exit 1; }
+          for v in "$(node -p "require('./package.json').version")" "$(node -p "require('./react/package.json').version")" "$(sed -n "s/^export const version = '\(.*\)';/\1/p" src/index.ts)"; do
+            [ "$v" = "$TAG" ] || { echo "::error::tag $TAG does not match a version in the repository ($v)"; exit 1; }
+          done
+          grep -qE "^## ${TAG//./\\.}( |$)" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $TAG' section"; exit 1; }
+          grep -q '"@miniwall/render": "[0-9]' package.json || { echo "::error::@miniwall/render must be an exact version"; exit 1; }
+          npm view "@miniwall/render@$(node -p "require('./package.json').dependencies['@miniwall/render']")" version >/dev/null || { echo "::error::the pinned @miniwall/render is not on npm"; exit 1; }
+          echo "enabled=${ENABLED:-false}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: publish to npm
+    needs: guard
+    if: needs.guard.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    environment: publish
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing (OIDC) and provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm typecheck && pnpm test && pnpm test:e2e
+      # The first publish of a package needs a token (npm cannot attach a trusted publisher to a package that does not exist yet):
+      # put a granular, publish-only NPM_TOKEN in the `publish` environment, then remove it once trusted publishing is set up.
+      - name: publish @miniwall/web
+        run: pnpm --filter @miniwall/web publish --provenance --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: publish @miniwall/react
+        run: pnpm --filter @miniwall/react publish --provenance --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  github-release:
+    name: GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --verify-tag --title "$TAG" --generate-notes
