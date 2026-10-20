@@ -22,7 +22,7 @@ The maintainer reviews every pull request. We aim to reply within 7 days; this i
 ## Before you open a pull request
 
 1. Fork the repository and branch from `main`.
-2. Run the tests (see the README; the sources are not in this repository yet). They must pass.
+2. Run the tests (`pnpm install && pnpm typecheck && pnpm test && pnpm test:e2e` (needs @miniwall/render, see the README)). They must pass.
 3. Add or update a test for the behavior you change.
 4. Keep the pull request to one goal. Do not mix refactors with fixes.
 5. **Sign off every commit** (`git commit -s`). That adds `Signed-off-by: Your Name <you@example.com>` and states you wrote the change or have the right to submit it under the [Developer Certificate of Origin](https://developercertificate.org/). A check fails the pull request without it.

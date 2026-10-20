@@ -2,12 +2,12 @@
 
 Show paywalls, onboarding screens and surveys built in the Miniwall dashboard on any website. The SDK only renders: prices come from your site and checkout stays in your code (Stripe, Paddle, your backend).
 
-- No framework needed. Svelte and the renderer are compiled in.
+- No framework needed. The renderer comes as a compiled dependency (`@miniwall/render`, with its own runtime); the `<script>` build bundles it.
 - Rendered in a shadow root, so your page's CSS does not leak in and the paywall's CSS does not leak out.
 - Safe to import during server rendering (Next.js, Remix): nothing touches the DOM until you call it.
 - ESM for bundlers, plus one `<script>` file that exposes `window.UIKit` and `<uikit-paywall>`.
 
-React: see [`@miniwall/react`](../web-react).
+React: see [`@miniwall/react`](./react).
 
 ## Install
 
@@ -139,4 +139,15 @@ Current Chrome, Edge, Firefox and Safari (last two versions), iOS Safari 16+ and
 
 ## License
 
-MIT. The bundles include Svelte and other open-source code: see `dist/THIRD_PARTY_LICENSES.md`.
+MIT for this SDK. The `<script>` build also contains the compiled renderer (`@miniwall/render`, its own license: `dist/RENDERER_LICENSE`) and open-source code: see `dist/THIRD_PARTY_LICENSES.md`.
+
+## Develop
+
+The Web SDK installs `@miniwall/render` from npm. Until that package is published, a checkout cannot install it from the registry, so only the maintainers build this repository for now (the maintainers link their own build of the renderer). Issues and small pull requests are welcome; see `CONTRIBUTING.md`. When the renderer is published:
+
+```bash
+pnpm install
+pnpm typecheck && pnpm test      # unit tests
+pnpm test:e2e                    # builds, checks the package contents, runs the browser tests
+pnpm --filter @miniwall/react test
+```

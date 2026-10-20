@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web SDK test page</title>
+    <style>
+      body { font: 16px system-ui, sans-serif; margin: 0; padding: 16px; }
+      button { min-height: 44px; min-width: 44px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Web SDK test page</h1>
+      <p>A bare page for the browser tests. Query: <code>?paywall=welcome</code>, <code>&amp;checkout=declined</code>, <code>&amp;embedded=1</code>.</p>
+      <button type="button" id="open" data-trigger>Open</button>
+      <output id="result" aria-live="polite"></output>
+      <div id="slot"></div>
+      <ol id="log" aria-label="Callbacks and events"></ol>
+    </main>
+    <script src="/ui-kit.iife.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const name = params.get('paywall') || 'metered-article';
+      const src = '/paywalls/' + name + '.json';
+      const products = {
+        monthly: { price: 9.99, currency: 'USD', period: 'month', title: 'Pro monthly' },
+        annual: { price: 59.99, currency: 'USD', period: 'year', title: 'Pro yearly' },
+      };
+      const result = document.getElementById('result');
+      const log = (text) => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        document.getElementById('log').prepend(li);
+      };
+      const show = (value) => (result.textContent = typeof value === 'string' ? value : JSON.stringify(value));
+      // The site's checkout: waits, then pays or declines like a card would. Nothing is charged.
+      const onPurchase = async ({ packageId }) => {
+        log('onPurchase ' + packageId);
+        await new Promise((r) => setTimeout(r, 300));
+        if (params.get('checkout') === 'declined') throw new Error('Card declined');
+        log('Checkout paid');
+        return true;
+      };
+
+      if (params.get('embedded')) {
+        const element = document.createElement('uikit-paywall');
+        element.setAttribute('src', src);
+        element.products = products;
+        element.onPurchase = onPurchase;
+        element.addEventListener('uikit-purchased', (e) => { log('uikit-purchased'); show({ element: 'purchased', ...e.detail }); });
+        element.addEventListener('uikit-action', (e) => { log('uikit-action'); show({ element: 'action', actionId: e.detail.actionId }); });
+        element.addEventListener('uikit-error', (e) => { log('uikit-error'); show('Error: ' + (e.detail.error && e.detail.error.message || e.detail.error)); });
+        document.getElementById('slot').append(element);
+      }
+
+      document.getElementById('open').addEventListener('click', async () => {
+        const mode = params.get('mode') || 'modal';
+        log('presentPaywall()');
+        const outcome = await UIKit.presentPaywall({
+          paywall: src,
+          mode,
+          products,
+          onPurchase,
+          onClose: () => log('onClose'),
+          onAction: ({ actionId }) => log('onAction'),
+          onError: (error) => { log('onError'); show('Error: ' + error.message); },
+        });
+        show(outcome);
+      });
+    </script>
+  </body>
+</html>
