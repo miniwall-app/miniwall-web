@@ -1,11 +1,14 @@
-// Fails if the npm tarball would ship source maps or any trace of the private renderer source (packages/ui-sdk).
-// Run after `pnpm build`: part of `prepublishOnly` and `test:e2e`.
+// Fails if the npm tarball would ship source maps, a stray monorepo path, the renderer inlined in the ES bundle, or an
+// unminified browser bundle. Run after `pnpm build`: part of `prepublishOnly` and `test:e2e`.
+// The checks are about the shape of the bundles (size, line length, imports), not about names inside the renderer.
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const [pack] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { encoding: 'utf8' }));
-// Internal function names of the private renderer (packages/ui-sdk): they must not survive in the shipped bundles.
-const RENDERER_INTERNALS = ['getPackageInfoContext', 'getColorModeContext', 'createInputChoiceContext', 'getSelectedStateContext', 'getInitialInputSelectionsContext'];
+// The ES bundle holds only this SDK (about 65 KB). The renderer (about 125 KB more) is a dependency, so a bundle this big means it was inlined.
+const ES_MAX_BYTES = 120_000;
+// The browser bundle is minified: a few long lines. Unminified code averages well under 100 characters per line.
+const IIFE_MIN_AVG_LINE = 500;
 const problems = [];
 const paths = pack.files.map((f) => f.path);
 for (const required of ['dist/index.js', 'dist/ui-kit.iife.js', 'dist/THIRD_PARTY_LICENSES.md', 'dist/RENDERER_LICENSE', 'LICENSE']) {
@@ -16,17 +19,16 @@ for (const { path } of pack.files) {
   if (!/\.(js|mjs|cjs)$/.test(path)) continue;
   const text = readFileSync(path, 'utf8');
   if (text.includes('sourceMappingURL')) problems.push(`${path}: points at a source map`);
-  if (text.includes('packages/ui-sdk')) problems.push(`${path}: mentions packages/ui-sdk`);
+  if (/(^|[^\w.-])packages\/[\w-]+\//.test(text)) problems.push(`${path}: mentions a monorepo path`);
   // The ES bundle is only this SDK: the renderer is a dependency, not inlined. The IIFE carries the renderer, so it must be minified.
   if (path === 'dist/index.js') {
     if (!/from\s*["']@miniwall\/render["']/.test(text)) problems.push(`${path}: does not import @miniwall/render`);
-    const inlined = RENDERER_INTERNALS.filter((name) => text.includes(name));
-    if (inlined.length) problems.push(`${path}: renderer code inlined (${inlined.join(', ')})`);
+    if (text.length > ES_MAX_BYTES) problems.push(`${path}: ${text.length} bytes, over ${ES_MAX_BYTES}: the renderer looks inlined`);
     if (/from\s*["']svelte/.test(text)) problems.push(`${path}: imports svelte (the renderer carries its own runtime)`);
   }
   if (path === 'dist/ui-kit.iife.js') {
-    const readable = RENDERER_INTERNALS.filter((name) => text.includes(name));
-    if (readable.length) problems.push(`${path}: not minified (readable renderer names: ${readable.join(', ')})`);
+    const avgLine = text.length / Math.max(1, text.split('\n').length);
+    if (avgLine < IIFE_MIN_AVG_LINE) problems.push(`${path}: not minified (average line ${Math.round(avgLine)} characters)`);
   }
 }
 if (problems.length) {
