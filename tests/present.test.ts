@@ -1,5 +1,5 @@
 // Interaction with the rendered paywall (purchase, busy state, focus) needs a real
-// browser: the renderer does not paint under jsdom. See sdks/web/tests/e2e.
+// browser: the renderer does not paint under jsdom. See tests/e2e.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import sample from './fixtures/sample-paywall.json';
 import { loadPaywall, mountPaywall, presentPaywall } from '../src';
