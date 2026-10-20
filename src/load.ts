@@ -35,7 +35,7 @@ interface Delivery {
   placement?: string | null;
   /** A running A/B test on the placement: side B, shown to `shareB` percent of visitors. */
   experiment?: { id: string; shareB: number; b: Delivery } | null;
-  /** Audiences in order; `paywall: null` shows nothing (docs/specs/targeting.md). */
+  /** Audiences in order; `paywall: null` shows nothing. */
   rules?: { id: string; conditions: Condition[]; paywall: Delivery | null }[];
   frequency?: FrequencyCap | null;
   holdout?: { id: string; share: number } | null;

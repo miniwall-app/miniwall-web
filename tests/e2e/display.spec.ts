@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Layout of the non-blocking formats (docs/specs/display-and-triggers.md) in a
+// Layout of the non-blocking formats in a
 // real browser: jsdom does not lay out, so positions are only checked here.
 // `chromium` is a 1280 px desktop, `mobile` a Pixel 7 (412 px).
 

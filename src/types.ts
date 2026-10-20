@@ -153,7 +153,7 @@ export interface PaywallHandle {
 }
 
 /**
- * How a presented screen appears (docs/specs/display-and-triggers.md):
+ * How a presented screen appears:
  * - `modal`: centered dialog over a dimmed page;
  * - `fullscreen`: covers the viewport;
  * - `banner`: a full-width bar pinned to the top or bottom, page stays usable;

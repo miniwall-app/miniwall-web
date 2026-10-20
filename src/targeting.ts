@@ -1,5 +1,5 @@
 /**
- * Placement targeting, decided in the browser (docs/specs/targeting.md):
+ * Placement targeting, decided in the browser:
  * audiences checked against the site's attributes, a per-visitor frequency
  * cap and a holdout. Attributes are only read here; they are never sent.
  */

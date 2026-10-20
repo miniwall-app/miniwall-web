@@ -161,7 +161,7 @@ export function reportPurchase(details: { packageId?: string; paywallId?: string
   }
   if (!pending && !details.paywallId) {
     // No buy tap to attribute: credit the last placement this visitor met,
-    // which is what holdout results compare (docs/specs/targeting.md).
+    // which is what holdout results compare.
     const exposure = lastExposure();
     if (!exposure) return;
     enqueue({

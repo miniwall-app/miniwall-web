@@ -1,6 +1,5 @@
 /**
- * Screens linked into a flow and the answers collected along it
- * (docs/specs/flows-and-questions.md). Pure helpers; render.ts drives them.
+ * Screens linked into a flow and the answers collected along it. Pure helpers; render.ts drives them.
  */
 import type { Answers, PaywallJson } from './types';
 

@@ -1,5 +1,5 @@
 /**
- * Placements that show themselves (docs/specs/display-and-triggers.md): on
+ * Placements that show themselves: on
  * page load, after a delay, at a scroll depth or on exit intent, on the pages
  * the dashboard lists. One screen per page view, never over another screen,
  * and when several fire at once the highest priority goes first.

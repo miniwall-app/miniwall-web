@@ -86,7 +86,7 @@ function resolveLocale(paywall: PaywallJson, requested?: string): string {
  * Mounts the renderer inside a shadow root appended to `container`. Purchase
  * and restore run through the host's callbacks with a busy overlay, so a
  * double tap can never start two checkouts. "Go to screen" buttons swap the
- * next screen in place (docs/specs/flows-and-questions.md); answers carry
+ * next screen in place; answers carry
  * across screens.
  */
 export function renderPaywall(container: HTMLElement, paywall: PaywallJson, options: PaywallOptions, hooks: RenderHooks): RenderedPaywall {

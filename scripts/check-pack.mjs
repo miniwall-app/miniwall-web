@@ -1,4 +1,4 @@
-// Fails if the npm tarball would ship source maps, a stray monorepo path, the renderer inlined in the ES bundle, or an
+// Fails if the npm tarball would ship source maps, a stray internal path, the renderer inlined in the ES bundle, or an
 // unminified browser bundle. Run after `pnpm build`: part of `prepublishOnly` and `test:e2e`.
 // The checks are about the shape of the bundles (size, line length, imports), not about names inside the renderer.
 import { execFileSync } from 'node:child_process';
@@ -19,7 +19,7 @@ for (const { path } of pack.files) {
   if (!/\.(js|mjs|cjs)$/.test(path)) continue;
   const text = readFileSync(path, 'utf8');
   if (text.includes('sourceMappingURL')) problems.push(`${path}: points at a source map`);
-  if (/(^|[^\w.-])packages\/[\w-]+\//.test(text)) problems.push(`${path}: mentions a monorepo path`);
+  if (/(^|[^\w.-])packages\/[\w-]+\//.test(text)) problems.push(`${path}: mentions an internal path`);
   // The ES bundle is only this SDK: the renderer is a dependency, not inlined. The IIFE carries the renderer, so it must be minified.
   if (path === 'dist/index.js') {
     if (!/from\s*["']@miniwall\/render["']/.test(text)) problems.push(`${path}: does not import @miniwall/render`);
