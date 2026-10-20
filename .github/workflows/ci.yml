@@ -1,9 +1,9 @@
 name: CI
 
-# Manual only for now. The Web SDK installs @miniwall/render from npm and that package is not published yet, so an install here
-# would fail. When it is published, add the `push` and `pull_request` triggers back (see README).
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
 
 permissions:
   contents: read

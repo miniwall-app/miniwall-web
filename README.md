@@ -143,7 +143,7 @@ MIT for this SDK. The `<script>` build also contains the compiled renderer (`@mi
 
 ## Develop
 
-The Web SDK installs `@miniwall/render` from npm. Until that package is published, a checkout cannot install it from the registry, so only the maintainers build this repository for now (the maintainers link their own build of the renderer). Issues and small pull requests are welcome; see `CONTRIBUTING.md`. When the renderer is published:
+The Web SDK installs the compiled renderer `@miniwall/render` from npm (its source is not part of this repository). Issues and small pull requests are welcome; see `CONTRIBUTING.md`.
 
 ```bash
 pnpm install
